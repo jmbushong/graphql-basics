@@ -5,38 +5,48 @@ import { GraphQLServer } from "graphql-yoga";
 //Type Definitions (schema)- describes data structures
 const typeDefs = `
     type Query {
-        title: String!
-        price: Float!
-        releaseYear: Int
-        rating: Float
-        inStock: Boolean!
-     
+        me: User!
+        post: Post!
+      
     }
+
+    type User{
+        id: ID!
+        name: String!
+        email: String!
+        age: Int
+    }
+
+    type Post{
+        id: ID!
+        title: String!
+        body: String!
+        published: Boolean!
+    }
+
 
 `;
 //Resolvers- functions that are actually run when various operations are performed
 
 const resolvers = {
   Query: {
-   
-      title(){
-            return 'Barbie Doll'
-      },
-      price(){
-            return 5.50
-
-      },
-      releaseYear(){
-            return 1996
-      },
-      rating(){
-            return 3.5
-
-      },
-      inStock(){
-            return true
-      }
-    
+    me(){
+        return {
+            id: '123098',
+            name: 'Mike',
+            email: 'mike@example.com',
+          
+        }
+    },
+    post(){
+        return{
+            id: '54321',
+            title: 'Best Day Ever',
+            body: 'What a wonderful day!',
+            published: true
+        }
+    }
+     
 
   },
 };
