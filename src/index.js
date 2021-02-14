@@ -5,10 +5,11 @@ import { GraphQLServer } from "graphql-yoga";
 //Type Definitions (schema)- describes data structures
 const typeDefs = `
     type Query {
-        add(a: Float!, b: Float!): Float
+        add(numbers: [Float!]!): Float
         greeting(name: String, position: String): String!
         me: User!
         post: Post!
+        grades:[Int!]!
       
     }
 
@@ -32,43 +33,50 @@ const typeDefs = `
 
 const resolvers = {
   Query: {
-    add(parent,args,ctx,info){
-     return args.a + args.b
+    add(parent, args, ctx, info) {
+      if(args.numbers.length === 0){
+          return 0
+      }
+      //[1,5,10,2]
+      return args.numbers.reduce((accumulator, currentValue)=> {
+          return accumulator + currentValue
+      })
+    },
+    grades(parent, args, ctx, info){
+        return [99, 80, 93]
+
     },
     greeting(parent, args, ctx, info) {
-        console.log(args)
-        if(args.name && args.position){
-            return `Hello, ${args.name}! You are my favorite ${args.position}.`
-        } else{
-        return 'Hello!'}
+      console.log(args);
+      if (args.name && args.position) {
+        return `Hello, ${args.name}! You are my favorite ${args.position}.`;
+      } else {
+        return "Hello!";
+      }
     },
-    me(){
-        return {
-            id: '123098',
-            name: 'Mike',
-            email: 'mike@example.com',
-          
-        }
+    me() {
+      return {
+        id: "123098",
+        name: "Mike",
+        email: "mike@example.com",
+      };
     },
-    post(){
-        return{
-            id: '54321',
-            title: 'Best Day Ever',
-            body: 'What a wonderful day!',
-            published: true
-        }
-    }
-     
-
+    post() {
+      return {
+        id: "54321",
+        title: "Best Day Ever",
+        body: "What a wonderful day!",
+        published: true,
+      };
+    },
   },
 };
 
+const server = new GraphQLServer({
+  typeDefs: typeDefs,
+  resolvers: resolvers,
+});
 
-const server= new GraphQLServer({
-    typeDefs: typeDefs,
-    resolvers: resolvers,
-})
-
-server.start(()=> {
-    console.log('The server is up!')
-})
+server.start(() => {
+  console.log("The server is up!");
+});
