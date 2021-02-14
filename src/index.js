@@ -24,13 +24,32 @@ const users= [{
 
 ]
 
+const posts=[{
+  id:'1',
+  title:'first post third idea',
+  body:'This is my first post, but I cant wait to write a second one',
+  published: true
+},{
+  id:'2',
+  title:'second post apple',
+  body:'This is my second post',
+  published: true
+},{
+  id:'3',
+  title:'third post',
+  body:'This is my third post',
+  published: false
+}]
+
 
 //Type Definitions (schema)- describes data structures
 const typeDefs = `
     type Query {
         users(query: String): [User!]!
+        posts(query: String): [Post!]!
         me: User!
         post: Post!
+        
     }
 
     type User{
@@ -62,6 +81,19 @@ const resolvers = {
           return user.name.toLowerCase().includes(args.query.toLowerCase())
 
         })
+
+    },
+    posts(parent, args, ctx, info){
+      if(!args.query){
+        return posts
+      }
+      return posts.filter((post)=> {
+        let isTitleMatch = post.title.toLowerCase().includes(args.query.toLowerCase()) 
+        let isBodyMatch= post.body.toLowerCase().includes(args.query.toLowerCase())
+        return (isTitleMatch || isBodyMatch)
+
+
+      })
 
     },
     me() {
