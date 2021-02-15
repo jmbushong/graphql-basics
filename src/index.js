@@ -3,44 +3,49 @@ import { GraphQLServer } from "graphql-yoga";
 // Scalar Types-- String, Boolean, Int, Float (numbers w/decimals), ID(unique identifiers)
 
 //Demo User Date
-const users= [{
-    id:'1',
-    name: 'Sara',
-    email: 'saraha@example.com',
-    age: 53
-}, {
-    id: '2',
-    name:'Matt',
-    email: 'matt@example.com'
+const users = [
+  {
+    id: "1",
+    name: "Sara",
+    email: "saraha@example.com",
+    age: 53,
+  },
+  {
+    id: "2",
+    name: "Matt",
+    email: "matt@example.com",
+  },
+  {
+    id: "3",
+    name: "Bob",
+    email: "bob@example.com",
+    age: 22,
+  },
+];
 
-},{
-    id: '3',
-    name: 'Bob',
-    email: 'bob@example.com',
-    age: 22 
-
-}
-
-
-]
-
-const posts=[{
-  id:'1',
-  title:'first post third idea',
-  body:'This is my first post, but I cant wait to write a second one',
-  published: true
-},{
-  id:'2',
-  title:'second post apple',
-  body:'This is my second post',
-  published: true
-},{
-  id:'3',
-  title:'third post',
-  body:'This is my third post',
-  published: false
-}]
-
+const posts = [
+  {
+    id: "1",
+    title: "first post third idea",
+    body: "This is my first post, but I cant wait to write a second one",
+    published: true,
+    author: '1'
+  },
+  {
+    id: "2",
+    title: "second post apple",
+    body: "This is my second post",
+    published: true,
+    author: '1'
+  },
+  {
+    id: "3",
+    title: "third post",
+    body: "This is my third post",
+    published: false,
+    author: '2'
+  },
+];
 
 //Type Definitions (schema)- describes data structures
 const typeDefs = `
@@ -64,6 +69,7 @@ const typeDefs = `
         title: String!
         body: String!
         published: Boolean!
+        author: User! 
     }
 
 
@@ -72,29 +78,28 @@ const typeDefs = `
 
 const resolvers = {
   Query: {
-    users(parent,args,ctx,info){
-        if(!args.query){
-          return users
-        }
-
-        return users.filter((user)=> {
-          return user.name.toLowerCase().includes(args.query.toLowerCase())
-
-        })
-
-    },
-    posts(parent, args, ctx, info){
-      if(!args.query){
-        return posts
+    users(parent, args, ctx, info) {
+      if (!args.query) {
+        return users;
       }
-      return posts.filter((post)=> {
-        let isTitleMatch = post.title.toLowerCase().includes(args.query.toLowerCase()) 
-        let isBodyMatch= post.body.toLowerCase().includes(args.query.toLowerCase())
-        return (isTitleMatch || isBodyMatch)
 
-
-      })
-
+      return users.filter((user) => {
+        return user.name.toLowerCase().includes(args.query.toLowerCase());
+      });
+    },
+    posts(parent, args, ctx, info) {
+      if (!args.query) {
+        return posts;
+      }
+      return posts.filter((post) => {
+        let isTitleMatch = post.title
+          .toLowerCase()
+          .includes(args.query.toLowerCase());
+        let isBodyMatch = post.body
+          .toLowerCase()
+          .includes(args.query.toLowerCase());
+        return isTitleMatch || isBodyMatch;
+      });
     },
     me() {
       return {
@@ -112,6 +117,14 @@ const resolvers = {
       };
     },
   },
+  Post: {
+    author(parent, args, ctx, info){
+      return users.find((user)=> {
+        return user.id === parent.author
+      })
+
+    }
+  }
 };
 
 const server = new GraphQLServer({
