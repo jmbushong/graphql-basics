@@ -47,11 +47,40 @@ const posts = [
   },
 ];
 
+const comments =[
+  {
+    id:"10",
+    text: 'comment1',
+    author: '3'
+  },
+  {
+    id:"11",
+    text: 'comment2',
+    author: '3'
+  },
+  {
+    id:"12",
+    text: 'comment3',
+    author: '2'
+  },
+  {
+    id:"13",
+    text: 'comment4',
+    author: '1'
+  },
+]
+
+
+
 //Type Definitions (schema)- describes data structures
+//2 Direction Relationships - 
+//      Given a post we can access author through author property
+//      Given an author I can access posts 
 const typeDefs = `
     type Query {
         users(query: String): [User!]!
         posts(query: String): [Post!]!
+        comments: [Comment!]!
         me: User!
         post: Post!
         
@@ -62,8 +91,11 @@ const typeDefs = `
         name: String!
         email: String!
         age: Int
+        posts: [Post!]!
+        comments:[Comment!]!
     }
 
+    
     type Post{
         id: ID!
         title: String!
@@ -72,6 +104,11 @@ const typeDefs = `
         author: User! 
     }
 
+    type Comment{
+      id: ID!
+      text: String!
+      author: User!
+    }
 
 `;
 //Resolvers- functions that are actually run when various operations are performed
@@ -86,6 +123,9 @@ const resolvers = {
       return users.filter((user) => {
         return user.name.toLowerCase().includes(args.query.toLowerCase());
       });
+    },
+    comments(parent, args, ctx, info){
+      return comments;
     },
     posts(parent, args, ctx, info) {
       if (!args.query) {
@@ -116,6 +156,7 @@ const resolvers = {
         published: true,
       };
     },
+
   },
   Post: {
     author(parent, args, ctx, info){
@@ -123,6 +164,27 @@ const resolvers = {
         return user.id === parent.author
       })
 
+    }
+  },
+  Comment:{
+    author(parent, args, ctx, info){
+      return users.find((user)=>{
+        return user.id === parent.author
+      })
+    }
+
+  },
+  User:{
+    posts(parent, args, ctx, info){
+      return posts.filter((post) =>{
+        return post.author === parent.id
+
+      })
+    },
+    comments(parent, args, ctx, info){
+      return comments.filter((comment)=>{
+        return comment.author === parent.id
+      })
     }
   }
 };
