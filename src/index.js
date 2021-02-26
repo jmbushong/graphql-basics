@@ -6,7 +6,7 @@ import uuidv4 from "uuid/v4";
 // Scalar Types-- String, Boolean, Int, Float (numbers w/decimals), ID(unique identifiers)
 
 //Demo User Date
-const users = [
+let users = [
   {
     id: "1",
     name: "Sara",
@@ -26,7 +26,7 @@ const users = [
   },
 ];
 
-const posts = [
+let posts = [
   {
     id: "1",
     title: "first post third idea",
@@ -50,7 +50,7 @@ const posts = [
   },
 ];
 
-const comments = [
+let comments = [
   {
     id: "10",
     text: "comment1",
@@ -92,8 +92,9 @@ const typeDefs = `
     }
 
     type Mutation {
-      createUser(data: CreateUserInput): User!
-      createPost(data: CreatePostInput): Post!
+      createUser(data: CreateUserInput!): User!
+      deleteUser(id: ID!): User!
+      createPost(data: CreatePostInput!): Post!
       createComment(data: CreateCommentInput): Comment! 
     }
 
@@ -205,6 +206,41 @@ const resolvers = {
       users.push(user);
 
       return user;
+    },
+    deleteUser(parent, args, ctx, info){
+      const userIndex = users.findIndex((user)=>user.id === args.id)
+
+      if(userIndex === -1){
+        throw new Error ('User not found')
+
+      }
+
+      //delete user
+      //returns array of objects --in this case just one
+      const deletedUsers = users.splice(userIndex, 1)
+
+      //remove all associated posts & comments
+      //only keeping posts that do not belong to the user
+      posts= posts.filter((post) => {
+        const match = post.author === args.id
+
+        //if the comment belongs to the post that was just deleted--it gets deleted
+        if(match){
+          comments= comments.filter((comment) => comment.post !== post.id)
+        }
+
+        return !match
+
+      })
+
+      //remove all comments that this user has created 
+      comments = comment.filter((comment) => comment.author !== args.id)
+
+
+
+      return deletedUsers[0]
+
+
     },
     createComment(parent, args, ctx, info) {
       const userExists = users.some((user) => user.id === args.data.author);
