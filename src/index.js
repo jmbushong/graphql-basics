@@ -1,9 +1,7 @@
 import { GraphQLServer } from "graphql-yoga";
-import uuidv4 from 'uuid/v4'
+import uuidv4 from "uuid/v4";
 
 //Goal allow clients to create a new comment
-
-
 
 // Scalar Types-- String, Boolean, Int, Float (numbers w/decimals), ID(unique identifiers)
 
@@ -34,57 +32,55 @@ const posts = [
     title: "first post third idea",
     body: "This is my first post, but I cant wait to write a second one",
     published: true,
-    author: '1'
+    author: "1",
   },
   {
     id: "2",
     title: "second post apple",
     body: "This is my second post",
     published: true,
-    author: '1'
+    author: "1",
   },
   {
     id: "3",
     title: "third post",
     body: "This is my third post",
     published: false,
-    author: '2'
+    author: "2",
   },
 ];
 
-const comments =[
+const comments = [
   {
-    id:"10",
-    text: 'comment1',
-    author: '3',
-    post: '1'
+    id: "10",
+    text: "comment1",
+    author: "3",
+    post: "1",
   },
   {
-    id:"11",
-    text: 'comment2',
-    author: '3',
-    post: '1'
+    id: "11",
+    text: "comment2",
+    author: "3",
+    post: "1",
   },
   {
-    id:"12",
-    text: 'comment3',
-    author: '2',
-    post: '2'
+    id: "12",
+    text: "comment3",
+    author: "2",
+    post: "2",
   },
   {
-    id:"13",
-    text: 'comment4',
-    author: '1',
-    post: '1'
+    id: "13",
+    text: "comment4",
+    author: "1",
+    post: "1",
   },
-]
-
-
+];
 
 //Type Definitions (schema)- describes data structures
-//2 Direction Relationships - 
+//2 Direction Relationships -
 //      Given a post we can access author through author property
-//      Given an author I can access posts 
+//      Given an author I can access posts
 const typeDefs = `
     type Query {
         users(query: String): [User!]!
@@ -96,9 +92,28 @@ const typeDefs = `
     }
 
     type Mutation {
-      createUser(name: String!, email: String!, age: Int): User!
-      createPost(title: String!, body: String!, published: Boolean!, author: ID!): Post!
-      createComment( text: String!, author: ID!, post: ID!): Comment! 
+      createUser(data: CreateUserInput): User!
+      createPost(data: CreatePostInput): Post!
+      createComment(data: CreateCommentInput): Comment! 
+    }
+
+    input CreateUserInput{
+      name: String!
+      email: String!
+      age: Int
+    }
+
+    input CreatePostInput {
+      title: String!
+      body:String!
+      published: Boolean!
+      author: ID!
+    }
+
+    input CreateCommentInput{
+      text: String!
+      author: ID!
+      post: ID!
     }
 
     type User{
@@ -141,7 +156,7 @@ const resolvers = {
         return user.name.toLowerCase().includes(args.query.toLowerCase());
       });
     },
-    comments(parent, args, ctx, info){
+    comments(parent, args, ctx, info) {
       return comments;
     },
     posts(parent, args, ctx, info) {
@@ -173,109 +188,104 @@ const resolvers = {
         published: true,
       };
     },
-
   },
-  Mutation:{
-    createUser(parent, args, ctx, info){
-      const emailTaken= users.some((user)=> user.email === args.email)
+  Mutation: {
+    createUser(parent, args, ctx, info) {
+      const emailTaken = users.some((user) => user.email === args.data.email);
 
-      if(emailTaken){
-        throw new Error('Email taken')
+      if (emailTaken) {
+        throw new Error("Email taken");
       }
 
-      const user ={
+      const user = {
         id: uuidv4(),
-        name: args.name,
-        email: args.email,
-        age: args.age
-      }
+        ...args.data,
+      };
 
-      users.push(user)
+      users.push(user);
 
-      return user 
-     
+      return user;
     },
-    createComment(parent, args, ctx, info){
-      const userExists = users.some((user) => user.id === args.author)
-      const postExists= posts.some((post) => (post.id === args.post) && post.published)
-      if(!userExists){
-        throw new Error ('User not found')
+    createComment(parent, args, ctx, info) {
+      const userExists = users.some((user) => user.id === args.data.author);
+      const postExists = posts.some(
+        (post) => post.id === args.data.post && post.published
+      );
+      if (!userExists) {
+        throw new Error("User not found");
       }
-      if(!postExists){
-        throw new Error('Post not found')
+      if (!postExists) {
+        throw new Error("Post not found");
       }
-    
-      const comment={
+
+      const comment = {
         id: uuidv4(),
-        text: args.text,
-        author: args.author,
-        post: args.post
-      }
-      
-      comments.push(comment)
-      
-      return comment
-      
+        ...args.data
+        // text: args.text,
+        // author: args.author,
+        // post: args.post
+      };
+
+      comments.push(comment);
+
+      return comment;
     },
-    createPost(parent, args, ctx, info){
-      const userExists = users.some((user) => user.id === args.author)
-      if(!userExists){
-        throw new Error('User not found')
+    createPost(parent, args, ctx, info) {
+      const userExists = users.some((user) => user.id === args.data.author);
+      if (!userExists) {
+        throw new Error("User not found");
       }
 
-      const post= {
+      const post = {
         id: uuidv4(),
-        title: args.title,
-        body: args.body,
-        published: args.published,
-        author: args.author
-      }
+        ...args.data,
+        // title: args.title,
+        // body: args.body,
+        // published: args.published,
+        // author: args.author
+      };
 
-      posts.push(post)
+      posts.push(post);
 
-      return post
-
-    }
+      return post;
+    },
   },
   Post: {
-    author(parent, args, ctx, info){
-      return users.find((user)=> {
-        return user.id === parent.author
-      })
-
+    author(parent, args, ctx, info) {
+      return users.find((user) => {
+        return user.id === parent.author;
+      });
     },
-    comments(parent, args, ctx, info){
-      return comments.filter((comment)=>{
-        return comment.post === parent.id
-      })
-    }
+    comments(parent, args, ctx, info) {
+      return comments.filter((comment) => {
+        return comment.post === parent.id;
+      });
+    },
   },
-  Comment:{
-    author(parent, args, ctx, info){
-      return users.find((user)=>{
-        return user.id === parent.author
-      })
+  Comment: {
+    author(parent, args, ctx, info) {
+      return users.find((user) => {
+        return user.id === parent.author;
+      });
     },
-    post(parent, args, ctx, info){
-      return posts.find((post)=>{
-        return post.id === parent.post
-      })
-    }
-
+    post(parent, args, ctx, info) {
+      return posts.find((post) => {
+        return post.id === parent.post;
+      });
+    },
   },
-  User:{
-    posts(parent, args, ctx, info){
-      return posts.filter((post) =>{
-        return post.author === parent.id
-
-      })
+  User: {
+    posts(parent, args, ctx, info) {
+      return posts.filter((post) => {
+        return post.author === parent.id;
+      });
     },
-    comments(parent, args, ctx, info){
-      return comments.filter((comment)=>{
-        return comment.author === parent.id
-      })
-    }
-  }
+    comments(parent, args, ctx, info) {
+      return comments.filter((comment) => {
+        return comment.author === parent.id;
+      });
+    },
+  },
 };
 
 const server = new GraphQLServer({
