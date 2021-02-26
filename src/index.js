@@ -234,7 +234,7 @@ const resolvers = {
       })
 
       //remove all comments that this user has created 
-      comments = comment.filter((comment) => comment.author !== args.id)
+      comments = comments.filter((comment) => comment.author !== args.id)
 
 
 
