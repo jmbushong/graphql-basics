@@ -1,7 +1,7 @@
 import { GraphQLServer } from "graphql-yoga";
 import uuidv4 from "uuid/v4";
 
-//Goal allow clients to create a new comment
+//Delete a post
 
 // Scalar Types-- String, Boolean, Int, Float (numbers w/decimals), ID(unique identifiers)
 
@@ -94,6 +94,7 @@ const typeDefs = `
     type Mutation {
       createUser(data: CreateUserInput!): User!
       deleteUser(id: ID!): User!
+      deletePost(id: ID!): Post! 
       createPost(data: CreatePostInput!): Post!
       createComment(data: CreateCommentInput): Comment! 
     }
@@ -207,41 +208,54 @@ const resolvers = {
 
       return user;
     },
-    deleteUser(parent, args, ctx, info){
-      const userIndex = users.findIndex((user)=>user.id === args.id)
+    deletePost(parent, args, ctx, info) {
+      const postIndex= posts.findIndex((post) => post.id === args.id)
 
-      if(userIndex === -1){
-        throw new Error ('User not found')
-
+      if(postIndex === -1){
+        throw new Error ("Post not found")
       }
 
+      //delete post 
+      //returns array of objects (in this case just one)
+      const deletedPosts = posts.splice(postIndex, 1)
+
+     
+     
+      //remove all associated comments
+        comments= comments.filter((comment) => comment.post !== args.id)
+   
+
+      return deletedPosts[0]
+    },
+    deleteUser(parent, args, ctx, info) {
+      const userIndex = users.findIndex((user) => user.id === args.id);
+
+      if (userIndex === -1) {
+        throw new Error("User not found");
+      }
       //delete user
       //returns array of objects --in this case just one
-      const deletedUsers = users.splice(userIndex, 1)
+      const deletedUsers = users.splice(userIndex, 1);
 
       //remove all associated posts & comments
       //only keeping posts that do not belong to the user
-      posts= posts.filter((post) => {
-        const match = post.author === args.id
+      posts = posts.filter((post) => {
+        const match = post.author === args.id;
 
         //if the comment belongs to the post that was just deleted--it gets deleted
-        if(match){
-          comments= comments.filter((comment) => comment.post !== post.id)
+        if (match) {
+          comments = comments.filter((comment) => comment.post !== post.id);
         }
+        return !match;
+      });
 
-        return !match
+      //remove all comments that this user has created
+      comments = comments.filter((comment) => comment.author !== args.id);
 
-      })
-
-      //remove all comments that this user has created 
-      comments = comments.filter((comment) => comment.author !== args.id)
-
-
-
-      return deletedUsers[0]
-
-
+      return deletedUsers[0];
     },
+ 
+
     createComment(parent, args, ctx, info) {
       const userExists = users.some((user) => user.id === args.data.author);
       const postExists = posts.some(
@@ -256,7 +270,7 @@ const resolvers = {
 
       const comment = {
         id: uuidv4(),
-        ...args.data
+        ...args.data,
         // text: args.text,
         // author: args.author,
         // post: args.post
