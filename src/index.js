@@ -1,7 +1,6 @@
 import { GraphQLServer } from "graphql-yoga";
 import uuidv4 from "uuid/v4";
 
-//Delete a post
 
 // Scalar Types-- String, Boolean, Int, Float (numbers w/decimals), ID(unique identifiers)
 
@@ -95,6 +94,7 @@ const typeDefs = `
       createUser(data: CreateUserInput!): User!
       deleteUser(id: ID!): User!
       deletePost(id: ID!): Post! 
+      deleteComment(id: ID!): Comment!
       createPost(data: CreatePostInput!): Post!
       createComment(data: CreateCommentInput): Comment! 
     }
@@ -208,25 +208,33 @@ const resolvers = {
 
       return user;
     },
-    deletePost(parent, args, ctx, info) {
-      const postIndex= posts.findIndex((post) => post.id === args.id)
-
-      if(postIndex === -1){
-        throw new Error ("Post not found")
+    deleteComment(parent, args, ctx, info){
+      const commentIndex= comments.findIndex((comment)=> comment.id === args.id)
+      if(commentIndex === -1){
+        throw new Error("Comment not found")
       }
 
-      //delete post 
-      //returns array of objects (in this case just one)
-      const deletedPosts = posts.splice(postIndex, 1)
+      const deletedComment= comments.splice(commentIndex, 1)
 
-     
-     
-      //remove all associated comments
-        comments= comments.filter((comment) => comment.post !== args.id)
-   
-
-      return deletedPosts[0]
+      return deletedComment[0];
     },
+    deletePost(parent, args, ctx, info) {
+      const postIndex = posts.findIndex((post) => post.id === args.id);
+
+      if (postIndex === -1) {
+        throw new Error("Post not found");
+      }
+
+      //delete post
+      //returns array of objects (in this case just one)
+      const deletedPosts = posts.splice(postIndex, 1);
+
+      //remove all associated comments
+      comments = comments.filter((comment) => comment.post !== args.id);
+
+      return deletedPosts[0];
+    },
+
     deleteUser(parent, args, ctx, info) {
       const userIndex = users.findIndex((user) => user.id === args.id);
 
@@ -254,7 +262,6 @@ const resolvers = {
 
       return deletedUsers[0];
     },
- 
 
     createComment(parent, args, ctx, info) {
       const userExists = users.some((user) => user.id === args.data.author);
