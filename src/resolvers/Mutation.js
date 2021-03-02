@@ -144,14 +144,19 @@ const Mutation = {
     db.posts.push(post);
 
     if(args.data.published){
-      pubsub.publish('post', {post: post})
+      pubsub.publish('post', {
+        post: {
+          mutation: "CREATED",
+          data: post
+        }
+      })
     }
   
 
     return post;
   },
 
-  deletePost(parent, args, { db }, info) {
+  deletePost(parent, args, { db, pubsub }, info) {
     const postIndex = db.posts.findIndex((post) => post.id === args.id);
 
     if (postIndex === -1) {
@@ -164,6 +169,16 @@ const Mutation = {
 
     //remove all associated comments
     db.comments = db.comments.filter((comment) => comment.post !== args.id);
+
+    if(deletedPosts[0].published){
+      pubsub.publish('post', {
+        post:{
+          mutation: 'DELETED',
+          data: deletedPosts[0]
+        }
+      })
+
+    }
 
     return deletedPosts[0];
   },
