@@ -21,14 +21,14 @@ const users = [
   
  const posts = [
     {
-      id: "1",
+      id: "10",
       title: "first post third idea",
       body: "This is my first post, but I cant wait to write a second one",
       published: true,
       author: "1",
     },
     {
-      id: "2",
+      id: "12",
       title: "second post apple",
       body: "This is my second post",
       published: true,
