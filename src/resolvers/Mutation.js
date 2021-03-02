@@ -94,11 +94,16 @@ const Mutation = {
 
     db.comments.push(comment);
 
-    pubsub.publish(`comment ${args.data.post}`, {comment: comment})
+    pubsub.publish(`comment ${args.data.post}`, { 
+      comment: {
+      mutation: "CREATED",
+      data: comment
+    }})
+
 
     return comment;
   },
-  deleteComment(parent, args, { db }, info) {
+  deleteComment(parent, args, { db, pubsub }, info) {
     const commentIndex = db.comments.findIndex(
       (comment) => comment.id === args.id
     );
@@ -108,10 +113,16 @@ const Mutation = {
 
     const deletedComment = db.comments.splice(commentIndex, 1);
 
+    pubsub.publish(`comment ${deletedComment[0].post}`, { 
+      comment: {
+      mutation: "DELETED",
+      data: deletedComment[0]
+    }})
+
     return deletedComment[0];
   },
 
-  updateComment(parent, args, { db }, info){
+  updateComment(parent, args, { db, pubsub }, info){
     const comment= db.comments.find((comment) => comment.id === args.id)
 
     if(!comment){
@@ -120,7 +131,16 @@ const Mutation = {
 
     if(typeof args.data.text === "string"){
         comment.text= args.data.text
+      
+
     }
+
+    pubsub.publish(`comment ${comment.post}`, { 
+      comment: {
+      mutation: "UPDATED",
+      data: comment
+    }})
+    
 
     return comment
 
